@@ -1,0 +1,28 @@
+package com.molinares.crud.models;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name = "passwords")
+public class Authentication {
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    private Long id;
+    private String password;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}

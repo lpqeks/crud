@@ -2,11 +2,13 @@ package com.molinares.crud.controllers;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.molinares.crud.UserServices;
+import com.molinares.crud.dtos.AuthenticateUserDTO;
 import com.molinares.crud.models.User;
 import com.molinares.crud.repositories.UserRepository;
 import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -81,20 +83,7 @@ public class UserController {
     //Output: JSON
 
     @PostMapping("/authenticate")
-    public String authenticateUser(@RequestBody User user) {
-
-        String message = "";
-        if (this.userRepository.existsByEmail(user.getEmail())) {
-            User userToAuthenticate = this.userRepository.findByEmail(user.getEmail());
-
-            if (userToAuthenticate.getPassword().equals(user.getPassword())) {
-
-                message = String.format("{\"authenticated\": \"true\", \"user\" : {\"id\": %d, \"email\" : \"%s\"}}", userToAuthenticate.getId(), userToAuthenticate.getEmail());
-            } else {
-                message = String.format("{\"authenticated:\" %s}","false").toString();
-            }
-        }
-
-        return message ;
+    public MappingJacksonValue authenticateUser(@RequestBody User user) {
+        return userServices.validateUser(user);
     }
 }

@@ -1,10 +1,15 @@
 package com.molinares.crud;
 
+import com.molinares.crud.dtos.AuthenticateUserDTO;
+import com.molinares.crud.dtos.UserDTO;
 import com.molinares.crud.models.User;
 import com.molinares.crud.repositories.UserRepository;
+import com.molinares.crud.views.AuthenticateUserDTOView;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.servlet.view.AbstractUrlBasedView;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -14,9 +19,13 @@ import java.util.*;
 public class UserServices {
 
     private UserRepository userRepository;
+    private AuthenticateUserDTO authenticateUserDTO;
+    private UserDTO userDTO;
 
-    public UserServices(UserRepository userRepository) {
+    public UserServices(UserRepository userRepository, AuthenticateUserDTO authenticateUserDTO) {
         this.userRepository = userRepository;
+        this.authenticateUserDTO = authenticateUserDTO;
+
     }
 
     public Map<String, Object> updateUser(User user, Long id) throws Exception {
@@ -34,6 +43,7 @@ public class UserServices {
                 //System.out.println(field.getName());
                 //the statement below is necessary
                 field.setAccessible(true);
+            if(field.get(user) != null) {
 
                 if (field.getName().equals("lastName")) {
                     updatedUser.setLastName(user.getLastName());
@@ -64,10 +74,10 @@ public class UserServices {
                     response.put(field.getName(), user.getSalary());
 
                 }
+            }
+        });
 
-            });
-
-            this.userRepository.save(updatedUser);
+        this.userRepository.save(updatedUser);
 
         }
 
@@ -90,6 +100,30 @@ public class UserServices {
             return response;
         }
 
+    }
+
+    public MappingJacksonValue validateUser(User user) {
+
+        if (this.userRepository.existsByEmail(user.getEmail())) {
+            User userToAuthenticate = this.userRepository.findByEmail(user.getEmail());
+
+            if (userToAuthenticate.getPassword().equals(user.getPassword())) {
+                this.authenticateUserDTO.getUser().setEmail(userToAuthenticate.getEmail());
+                this.authenticateUserDTO.getUser().setId(userToAuthenticate.getId());
+                this.authenticateUserDTO.setAuthenticate(true);
+               // message = String.format("{\"authenticated\": \"true\", \"user\" : {\"id\": %d, \"email\" : \"%s\"}}", userToAuthenticate.getId(), userToAuthenticate.getEmail());
+            } else {
+                this.authenticateUserDTO.setAuthenticate(false);
+            }
+        }
+
+        MappingJacksonValue value = new MappingJacksonValue(authenticateUserDTO);
+        if (this.authenticateUserDTO.getAuthenticate()) {
+            value.setSerializationView(AuthenticateUserDTOView.FullView.class);
+        } else {
+            value.setSerializationView(AuthenticateUserDTOView.RestrictedView.class);
+        }
+        return value;
     }
 
 

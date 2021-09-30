@@ -21,6 +21,8 @@ public class User {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date boardingDate;
     private Boolean active;
     private Double salary;
@@ -75,7 +77,7 @@ public class User {
         this.password = password;
     }
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+
     public Date getBoardingDate() {
         return boardingDate;
     }
